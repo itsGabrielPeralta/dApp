@@ -1,0 +1,149 @@
+<!-- Indicate that this file is an HTML5 document -->
+<!DOCTYPE html>
+
+<!-- Define the root element with the prefered language -->
+<html lang="en">
+    <!-- The head element contains metadata of the app and it is not displayed -->
+    <head>
+        <!-- Element title is inside of head -->
+        <title> Mood App </title>
+        <!-- Define the character set used -->
+        <meta charset= "UTF-8" />
+        <!-- Define viewport to make the website look good on all devices-->
+        <meta name= "viewport" content= "width=device-width, initial-scale=1.0" />
+        <!-- Define compatibility -->
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+        <!-- Define some style to the webpage -->
+        <style>
+            body {
+                text-align: center;
+                font-family: Arial, Helvetica, sans-serif;
+            }
+            div{
+                width: 20%;
+                margin:0 auto;
+                display: flex;
+                flex-direction: column;
+            }
+            button{
+                width: 100%;
+                margin: 10px 0px 5px 0px;
+            }
+        </style>
+    </head>
+
+    <!-- Body es the visible part -->
+    <body>
+        <!-- The div element does not inherently represent anything. It's used to group content so it can be easily styled-->
+        <div>
+            <!-- Define a header -->
+            <h1> Mood App </h1>
+            <!-- Define a paragraph -->
+            <p> Here we can set or get the mood: </p>
+            <!-- Label is a hastagh for a element. With for indicate the id of element linked with this label -->
+            <label for="mood"> Input Mood: </label>
+            <!-- Define an input with the type and the id -->
+            <input type="text" id="mood" />
+            <!-- Define two buttons with onclick event -->
+            <button onclick="getMood()" > Get Mood </button>
+            <button onclick="setMood()" > Set Mood </button>
+
+        </div>
+    </body>
+
+    <!-- Script is where the logic are. This logic is JS. This  -->
+    <script>
+        //  Import Ethers.js that is a library that allows interact with Ethereum blockchain
+        src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"
+        type="application/javascript"
+    </script>
+
+    <script>
+        //  Const Address Contract
+        const MoodContractAddress = "0x7178b545Ff75197Eb4e9Ecf728DdB84cf02C725B";
+        //  Const ABI Contract is a JSON with two object since the contract has two functions. The JSON to send to Solidity alway has the same structure
+        //  name: function name
+        //  type: must be function
+        //  constant: false if the function updates data or false if not
+        //  outputs: object return by the function
+        //  stateMutability: function state (view,...). Nonpayable if hasnt got any state
+        //  payable: true if function accept Ether
+        // inputs: object introduced as paremeter to the funcion
+        const MoodContractABI = [
+            {
+                "name": "getMood",
+                "constant": true,
+                "inputs": [],
+                "outputs": 
+                [
+                    {
+                        "internalType": "string",
+                        "name": "",
+                        "type": "string"
+                    }
+                    
+
+                ],        
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"      
+            },
+            {
+                "name": "setMood",
+                "constant": false,
+                "inputs": [
+                    {
+                        "internalType": "string",
+                        "name": "_mood",
+                        "type": "string"
+                    }
+                ],
+                "outputs": [],        
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function" 
+            }
+        ];
+
+        //  Define variables
+        let MoodContract;
+        let signer;
+
+        //  Define the ethers provider that in this case is ropsten
+        const provider = new ethers.providers.We3Provider(window.ethereum, "ropsten");
+
+        //  Request access to the user's wallet
+        provider.send("eth_requestAccounts", []).then(() => {
+            //  Obtain the accounts list
+            provider.listAccount().then((accounts) => {
+                //  Select the account in position 0 as default and assing to the signer
+                signer = provider.getSigner(accounts[0]);
+
+                //  Define the object contract with the contract address, ABI and the signer
+                MoodContract = new ethers.Contract(
+                    MoodContractAddress,
+                    MoodContractABI,
+                    signer
+                );
+            });
+        });
+
+        //  Asynchronous function to call the smart contract's functions that are connect to the buttons
+        async function getMood(){
+            //  Access the funcion getMood in the smart contract
+            const getMoodPromise = MoodContract.getMood();
+            const Mood = await getMoodPromise;
+            console.log(Mood);
+        }
+
+        async function setMood(){
+            //  Get the mood value introduced
+            const mood = document.getElementById("mood").value;
+            //  Access the function setMood in the smart contract
+            const setMoodPromise = MoodContract.setMood(mood);
+            await setMoodPromise;
+        }
+    </script>
+
+</html>
